@@ -1,57 +1,4 @@
-// Регистрация убрана - только автоматический вход
-
-// Функция для прямой регистрации аккаунта через код (без сервера)
-function createAccountDirectly(username, email, password) {
-    // Создаем ID пользователя
-    const userId = Date.now().toString();
-    
-    // Создаем данные пользователя
-    const userData = {
-        id: userId,
-        username: username,
-        email: email,
-        avatar: username.charAt(0).toUpperCase(),
-        status: 'Online'
-    };
-    
-    // Создаем токен
-    const token = 'token_' + userId;
-    
-    // Сохраняем в localStorage
-    localStorage.setItem('token', token);
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    
-    // Если используется standalone версия с app_users
-    const STORAGE_USERS = 'app_users';
-    const usersStr = localStorage.getItem(STORAGE_USERS);
-    const users = usersStr ? JSON.parse(usersStr) : [];
-    
-    // Проверяем, нет ли уже такого пользователя
-    if (users.find(u => u.email === email || u.username === username)) {
-        console.warn('User already exists!');
-        return false;
-    }
-    
-    // Добавляем пользователя в список
-    users.push({
-        id: userId,
-        username: username,
-        email: email,
-        password: password, // В реальном приложении нужно хешировать!
-        avatar: username.charAt(0).toUpperCase(),
-        status: 'Online',
-        createdAt: new Date().toISOString()
-    });
-    
-    localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
-    
-    console.log('Account created successfully!');
-    console.log('Username:', username);
-    console.log('Email:', email);
-    console.log('User ID:', userId);
-    
-    return true;
-}
+// Автоматический вход - регистрация не требуется
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeAuth();
@@ -81,20 +28,6 @@ function initializeAuth() {
         }
     }
     
-    // Скрываем все поля ввода
-    const usernameGroup = document.getElementById('usernameGroup');
-    const emailGroup = document.getElementById('emailGroup');
-    const passwordInput = document.getElementById('password');
-    const passwordGroup = passwordInput ? passwordInput.closest('.form-group') : null;
-    const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
-    const switchMode = document.querySelector('.switch-mode');
-    
-    if (usernameGroup) usernameGroup.style.display = 'none';
-    if (emailGroup) emailGroup.style.display = 'none';
-    if (passwordGroup) passwordGroup.style.display = 'none';
-    if (confirmPasswordGroup) confirmPasswordGroup.style.display = 'none';
-    if (switchMode) switchMode.style.display = 'none';
-    
     // Меняем текст кнопки
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) submitBtn.textContent = 'Enter';
@@ -108,7 +41,6 @@ function initializeAuth() {
     authForm.addEventListener('submit', handleSubmit);
 }
 
-// Убрана функция переключения режима - теперь только автоматический вход
 
 async function handleSubmit(e) {
     e.preventDefault();
@@ -167,12 +99,6 @@ async function login(email, password) {
     }, 1000);
 }
 
-// Функция register удалена - регистрация больше не нужна
-
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
 
 function showError(message) {
     removeMessage('error-message');
