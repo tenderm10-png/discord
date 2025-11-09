@@ -1,4 +1,4 @@
-let isLoginMode = true;
+// Регистрация убрана - только автоматический вход
 
 // Функция для прямой регистрации аккаунта через код (без сервера)
 function createAccountDirectly(username, email, password) {
@@ -54,29 +54,6 @@ function createAccountDirectly(username, email, password) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Автоматически создаем 2 тестовых аккаунта при загрузке
-    const STORAGE_USERS = 'app_users';
-    const usersStr = localStorage.getItem(STORAGE_USERS);
-    const users = usersStr ? JSON.parse(usersStr) : [];
-    
-    // Проверяем, есть ли уже пользователи
-    const user1Exists = users.find(u => u.email === 'user1@test.com');
-    const user2Exists = users.find(u => u.email === 'user2@test.com');
-    
-    if (!user1Exists) {
-        createAccountDirectly('User1', 'user1@test.com', 'password123');
-        // Очищаем токен после создания, чтобы не залогинило автоматически
-        localStorage.removeItem('token');
-        localStorage.removeItem('currentUser');
-    }
-    
-    if (!user2Exists) {
-        createAccountDirectly('User2', 'user2@test.com', 'password123');
-        // Очищаем токен после создания, чтобы не залогинило автоматически
-        localStorage.removeItem('token');
-        localStorage.removeItem('currentUser');
-    }
-    
     initializeAuth();
 });
 
@@ -190,49 +167,7 @@ async function login(email, password) {
     }, 1000);
 }
 
-async function register(username, email, password) {
-    // Упрощенная версия - регистрация без проверок
-    const STORAGE_USERS = 'app_users';
-    const usersStr = localStorage.getItem(STORAGE_USERS);
-    const users = usersStr ? JSON.parse(usersStr) : [];
-    
-    // Создаем нового пользователя
-    const userId = Date.now().toString();
-    const newUser = {
-        id: userId,
-        username: username,
-        email: email,
-        password: password,
-        avatar: username.charAt(0).toUpperCase(),
-        status: 'Online',
-        createdAt: new Date().toISOString()
-    };
-    
-    // Добавляем пользователя (даже если уже есть такой email)
-    users.push(newUser);
-    localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
-    
-    // Создаем токен и данные пользователя
-    const userData = {
-        id: userId,
-        username: username,
-        email: email,
-        avatar: newUser.avatar,
-        status: 'Online'
-    };
-    
-    const token = 'token_' + userId;
-    
-    // Сохраняем в localStorage
-    localStorage.setItem('token', token);
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    
-    showSuccess('Registration successful! Redirecting...');
-    
-    setTimeout(() => {
-        window.location.href = 'index.html';
-    }, 1000);
-}
+// Функция register удалена - регистрация больше не нужна
 
 function validateEmail(email) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
