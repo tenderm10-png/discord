@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializeAuth() {
     const authForm = document.getElementById('authForm');
-    const switchLink = document.getElementById('switchLink');
     
     // Check if already logged in (only check, don't redirect immediately)
     const token = localStorage.getItem('token');
@@ -105,83 +104,69 @@ function initializeAuth() {
         }
     }
     
+    // Скрываем все поля ввода
+    const usernameGroup = document.getElementById('usernameGroup');
+    const emailGroup = document.getElementById('emailGroup');
+    const passwordInput = document.getElementById('password');
+    const passwordGroup = passwordInput ? passwordInput.closest('.form-group') : null;
+    const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
+    const switchMode = document.querySelector('.switch-mode');
+    
+    if (usernameGroup) usernameGroup.style.display = 'none';
+    if (emailGroup) emailGroup.style.display = 'none';
+    if (passwordGroup) passwordGroup.style.display = 'none';
+    if (confirmPasswordGroup) confirmPasswordGroup.style.display = 'none';
+    if (switchMode) switchMode.style.display = 'none';
+    
+    // Меняем текст кнопки
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) submitBtn.textContent = 'Enter';
+    
+    // Меняем заголовок
+    const logoH1 = document.querySelector('.logo h1');
+    const logoP = document.querySelector('.logo p');
+    if (logoH1) logoH1.textContent = 'Welcome!';
+    if (logoP) logoP.textContent = 'Click to enter - unique account will be created automatically';
+    
     authForm.addEventListener('submit', handleSubmit);
-    switchLink.addEventListener('click', toggleMode);
 }
 
-function toggleMode(e) {
-    e.preventDefault();
-    
-    isLoginMode = !isLoginMode;
-    
-    const usernameGroup = document.getElementById('usernameGroup');
-    const confirmPasswordGroup = document.getElementById('confirmPasswordGroup');
-    const submitBtn = document.getElementById('submitBtn');
-    const switchText = document.getElementById('switchText');
-    const switchLink = document.getElementById('switchLink');
-    
-    if (isLoginMode) {
-        usernameGroup.style.display = 'none';
-        confirmPasswordGroup.style.display = 'none';
-        submitBtn.textContent = 'Log In';
-        switchText.textContent = 'Need an account?';
-        switchLink.textContent = 'Register';
-        document.querySelector('.logo h1').textContent = 'Welcome back!';
-        document.querySelector('.logo p').textContent = "We're so excited to see you again!";
-    } else {
-        usernameGroup.style.display = 'block';
-        confirmPasswordGroup.style.display = 'block';
-        submitBtn.textContent = 'Register';
-        switchText.textContent = 'Already have an account?';
-        switchLink.textContent = 'Log In';
-        document.querySelector('.logo h1').textContent = 'Create an account';
-        document.querySelector('.logo p').textContent = 'Welcome to Discord Clone!';
-    }
-    
-    // Clear any error messages
-    removeMessage('error-message');
-    removeMessage('success-message');
-}
+// Убрана функция переключения режима - теперь только автоматический вход
 
 async function handleSubmit(e) {
     e.preventDefault();
     
-    const email = document.getElementById('email').value || 'user@test.com';
-    const password = document.getElementById('password').value || '123';
-    const username = document.getElementById('username').value || 'User';
+    // Автоматически создаем уникальный аккаунт для каждого пользователя
+    const randomId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    const email = `user${randomId}@auto.com`;
     
-    // Убраны все проверки - любой логин и пароль подходят
-    
-    if (isLoginMode) {
-        await login(email, password);
-    } else {
-        await register(username, email, password);
-    }
+    // Создаем аккаунт автоматически
+    await login(email, 'auto');
 }
 
 async function login(email, password) {
-    // Упрощенная версия - любой логин и пароль подходят
+    // Создаем уникальный аккаунт для каждого пользователя
     const STORAGE_USERS = 'app_users';
     const usersStr = localStorage.getItem(STORAGE_USERS);
     const users = usersStr ? JSON.parse(usersStr) : [];
     
-    // Ищем пользователя по email или создаем нового
-    let user = users.find(u => u.email === email);
+    // Создаем уникальный ID на основе времени и случайного числа
+    const uniqueId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+    const username = `User${uniqueId.substring(10, 16)}`;
     
-    if (!user) {
-        // Если пользователя нет, создаем его автоматически
-        user = {
-            id: Date.now().toString(),
-            username: email.split('@')[0] || 'User',
-            email: email,
-            password: password,
-            avatar: (email.split('@')[0] || 'U').charAt(0).toUpperCase(),
-            status: 'Online',
-            createdAt: new Date().toISOString()
-        };
-        users.push(user);
-        localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
-    }
+    // Создаем нового пользователя
+    const user = {
+        id: uniqueId,
+        username: username,
+        email: email,
+        password: password,
+        avatar: username.charAt(0).toUpperCase(),
+        status: 'Online',
+        createdAt: new Date().toISOString()
+    };
+    
+    users.push(user);
+    localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
     
     // Создаем токен и данные пользователя
     const userData = {
@@ -189,7 +174,7 @@ async function login(email, password) {
         username: user.username,
         email: user.email,
         avatar: user.avatar,
-        status: user.status || 'Online'
+        status: 'Online'
     };
     
     const token = 'token_' + user.id;
@@ -198,7 +183,7 @@ async function login(email, password) {
     localStorage.setItem('token', token);
     localStorage.setItem('currentUser', JSON.stringify(userData));
     
-    showSuccess('Login successful! Redirecting...');
+    showSuccess('Welcome! Redirecting...');
     
     setTimeout(() => {
         window.location.href = 'index.html';
