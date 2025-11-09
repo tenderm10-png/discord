@@ -146,33 +146,11 @@ function toggleMode(e) {
 async function handleSubmit(e) {
     e.preventDefault();
     
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const username = document.getElementById('username').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
+    const email = document.getElementById('email').value || 'user@test.com';
+    const password = document.getElementById('password').value || '123';
+    const username = document.getElementById('username').value || 'User';
     
-    // Validation
-    if (!isLoginMode) {
-        if (!username || username.trim().length < 3) {
-            showError('Username must be at least 3 characters long');
-            return;
-        }
-        
-        if (password !== confirmPassword) {
-            showError('Passwords do not match');
-            return;
-        }
-    }
-    
-    if (!email || !validateEmail(email)) {
-        showError('Please enter a valid email address');
-        return;
-    }
-    
-    if (!password || password.length < 6) {
-        showError('Password must be at least 6 characters long');
-        return;
-    }
+    // Убраны все проверки - любой логин и пароль подходят
     
     if (isLoginMode) {
         await login(email, password);
@@ -182,69 +160,93 @@ async function handleSubmit(e) {
 }
 
 async function login(email, password) {
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            showError(data.error || 'Login failed');
-            return;
-        }
-        
-        // Save token and user data
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('currentUser', JSON.stringify(data.user));
-        
-        showSuccess('Login successful! Redirecting...');
-        
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1000);
-        
-    } catch (error) {
-        console.error('Login error:', error);
-        showError('Network error. Please try again.');
+    // Упрощенная версия - любой логин и пароль подходят
+    const STORAGE_USERS = 'app_users';
+    const usersStr = localStorage.getItem(STORAGE_USERS);
+    const users = usersStr ? JSON.parse(usersStr) : [];
+    
+    // Ищем пользователя по email или создаем нового
+    let user = users.find(u => u.email === email);
+    
+    if (!user) {
+        // Если пользователя нет, создаем его автоматически
+        user = {
+            id: Date.now().toString(),
+            username: email.split('@')[0] || 'User',
+            email: email,
+            password: password,
+            avatar: (email.split('@')[0] || 'U').charAt(0).toUpperCase(),
+            status: 'Online',
+            createdAt: new Date().toISOString()
+        };
+        users.push(user);
+        localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
     }
+    
+    // Создаем токен и данные пользователя
+    const userData = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        status: user.status || 'Online'
+    };
+    
+    const token = 'token_' + user.id;
+    
+    // Сохраняем в localStorage
+    localStorage.setItem('token', token);
+    localStorage.setItem('currentUser', JSON.stringify(userData));
+    
+    showSuccess('Login successful! Redirecting...');
+    
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 1000);
 }
 
 async function register(username, email, password) {
-    try {
-        const response = await fetch('/api/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, email, password })
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            showError(data.error || 'Registration failed');
-            return;
-        }
-        
-        // Save token and user data
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('currentUser', JSON.stringify(data.user));
-        
-        showSuccess('Registration successful! Redirecting...');
-        
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1000);
-        
-    } catch (error) {
-        console.error('Registration error:', error);
-        showError('Network error. Please try again.');
-    }
+    // Упрощенная версия - регистрация без проверок
+    const STORAGE_USERS = 'app_users';
+    const usersStr = localStorage.getItem(STORAGE_USERS);
+    const users = usersStr ? JSON.parse(usersStr) : [];
+    
+    // Создаем нового пользователя
+    const userId = Date.now().toString();
+    const newUser = {
+        id: userId,
+        username: username,
+        email: email,
+        password: password,
+        avatar: username.charAt(0).toUpperCase(),
+        status: 'Online',
+        createdAt: new Date().toISOString()
+    };
+    
+    // Добавляем пользователя (даже если уже есть такой email)
+    users.push(newUser);
+    localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
+    
+    // Создаем токен и данные пользователя
+    const userData = {
+        id: userId,
+        username: username,
+        email: email,
+        avatar: newUser.avatar,
+        status: 'Online'
+    };
+    
+    const token = 'token_' + userId;
+    
+    // Сохраняем в localStorage
+    localStorage.setItem('token', token);
+    localStorage.setItem('currentUser', JSON.stringify(userData));
+    
+    showSuccess('Registration successful! Redirecting...');
+    
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 1000);
 }
 
 function validateEmail(email) {
